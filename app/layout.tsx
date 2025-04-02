@@ -3,7 +3,10 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Scipo - Space Phenomena Simulations',
-  description: 'Scipo is a platform for simulating space phenomena.', 
+  description: 'Scipo is a platform for simulating space phenomena.',
+  icons: {
+    icon: '/logo.svg',
+  },
 }
 
 export default function RootLayout({
