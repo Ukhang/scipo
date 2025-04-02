@@ -7,9 +7,16 @@ import * as THREE from "three"
 import { useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
+interface AsteroidProps {
+  position: number[];
+  size: number;
+  speed: number;
+  rotationSpeed: number;
+}
+
 // Asteroid component with random properties
-function Asteroid({ position, size, speed, rotationSpeed }) {
-  const meshRef = useRef()
+function Asteroid({ position, size, speed, rotationSpeed }: AsteroidProps) {
+  const meshRef = useRef<THREE.Mesh>(null);
 
   // Create a random rotation axis
   const rotationAxis = useRef(
@@ -54,7 +61,7 @@ function Asteroid({ position, size, speed, rotationSpeed }) {
 
 // Sun component
 function Sun() {
-  const sunRef = useRef()
+  const sunRef = useRef<THREE.Mesh | null>(null);
 
   useFrame((state, delta) => {
     if (sunRef.current) {
@@ -72,7 +79,12 @@ function Sun() {
 }
 
 // Generate a belt of asteroids
-function AsteroidBelt({ count = 200, innerRadius = 10, outerRadius = 20 }) {
+interface AsteroidBeltProps {
+  count?: number
+  innerRadius?: number
+  outerRadius?: number
+}
+function AsteroidBelt({ count = 200, innerRadius = 10, outerRadius = 20 }: AsteroidBeltProps) {
   const asteroids = []
 
   for (let i = 0; i < count; i++) {
@@ -99,7 +111,13 @@ function AsteroidBelt({ count = 200, innerRadius = 10, outerRadius = 20 }) {
 }
 
 // Controls panel component
-function ControlsPanel({ asteroidCount, setAsteroidCount, isControlsOpen, setIsControlsOpen }) {
+interface ControlsPanelProps {
+  asteroidCount: number
+  setAsteroidCount: (count: number) => void
+  isControlsOpen: boolean
+  setIsControlsOpen: (isOpen: boolean) => void
+}
+function ControlsPanel({ asteroidCount, setAsteroidCount, isControlsOpen, setIsControlsOpen }: ControlsPanelProps) {
   return (
     <div
       className={`absolute z-30 transition-all duration-300 ease-in-out left-0
