@@ -1,11 +1,70 @@
 "use client"
 
-import { useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, useTexture } from "@react-three/drei";
-import { ChevronDown, ChevronUp, Pause, Play } from "lucide-react";
+import { useRef, useState, useEffect, useMemo } from "react"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { OrbitControls, Stars, useTexture } from "@react-three/drei"
+import * as THREE from "three"
+import { ChevronDown, ChevronUp, Pause, Play } from "lucide-react"
 
-// Eclipse scene component
+function Sun({ size = 25 }) {
+  const sunRef = useRef<THREE.Mesh>(null)
+  const coronaRef = useRef<THREE.Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (sunRef.current) {
+      sunRef.current.rotation.y += delta * 0.05
+    }
+    if (coronaRef.current) {
+      coronaRef.current.rotation.z += delta * 0.01
+    }
+  })
+
+  return (
+    <group>
+      <mesh ref={sunRef}>
+        <sphereGeometry args={[size, 64, 64]} />
+        <meshBasicMaterial color="#FDB813" />
+        <pointLight intensity={1.5} distance={1000} decay={2} />
+      </mesh>
+
+      <mesh ref={coronaRef} scale={1.2}>
+        <sphereGeometry args={[size, 64, 64]} />
+        <meshBasicMaterial color="#FDB813" transparent={true} opacity={0.2} side={THREE.BackSide} />
+      </mesh>
+
+      <mesh scale={1.5}>
+        <sphereGeometry args={[size, 32, 32]} />
+        <meshBasicMaterial color="#FFF4E0" transparent={true} opacity={0.1} side={THREE.BackSide} />
+      </mesh>
+    </group>
+  )
+}
+
+interface MoonProps {
+  position: [number, number, number];
+  size?: number;
+  eclipseProgress: number;
+}
+
+function Moon({ position, size = 6.8, eclipseProgress }: MoonProps) {
+  const moonRef = useRef<THREE.Mesh>(null)
+  const moonTexture = useTexture("/placeholder.svg?height=512&width=512")
+
+  useFrame(() => {
+    if (moonRef.current) {
+      const x = 100 - eclipseProgress * 200
+      moonRef.current.position.set(x, 0, position[2])
+    }
+  })
+
+  return (
+    <mesh ref={moonRef} position={position}>
+      <sphereGeometry args={[size, 32, 32]} />
+      <meshStandardMaterial map={moonTexture} color="#AAAAAA" roughness={1} metalness={0} />
+    </mesh>
+  )
+}
+
 interface EclipseSceneProps {
   eclipseProgress: number
   eclipseType: 'total' | 'annular' | 'partial'
@@ -14,26 +73,23 @@ interface EclipseSceneProps {
 function EclipseScene({ eclipseProgress, eclipseType }: EclipseSceneProps) {
   const { camera } = useThree()
 
-  // Set initial camera position
   useEffect(() => {
     camera.position.set(0, 0, 150)
   }, [camera])
 
-  // Calculate moon position based on eclipse type
   const getMoonZPosition = () => {
     switch (eclipseType) {
       case "total":
-        return 50 // Moon closer to viewer, appears larger than sun
+        return 50
       case "annular":
-        return 60 // Moon further from viewer, appears smaller than sun
+        return 60
       case "partial":
-        return 55 // Moon at intermediate distance, with offset
+        return 55
       default:
         return 50
     }
   }
 
-  // Calculate moon Y offset for partial eclipse
   const getMoonYOffset = () => {
     return eclipseType === "partial" ? 4 : 0
   }
@@ -43,37 +99,27 @@ function EclipseScene({ eclipseProgress, eclipseType }: EclipseSceneProps) {
       <ambientLight intensity={0.1} />
       <Stars radius={300} depth={50} count={5000} factor={4} saturation={0} fade />
 
-      {/* Sun at the center */}
       <Sun size={25} />
 
-      {/* Moon that moves to create the eclipse */}
       <Moon position={[100, getMoonYOffset(), getMoonZPosition()]} size={6.8} eclipseProgress={eclipseProgress} />
     </>
   )
 }
 
-// Eclipse shadow effect on viewer
 interface EclipseShadowProps {
   eclipseProgress: number
   eclipseType: 'total' | 'annular' | 'partial'
 }
 function EclipseShadow({ eclipseProgress, eclipseType }: EclipseShadowProps) {
-  // Calculate brightness based on eclipse progress and type
-  // Using useMemo instead of useState + useEffect to prevent infinite loops
   const brightness = useMemo(() => {
     let newBrightness = 1
 
-    // Eclipse is most dark in the middle (progress = 0.5)
-    const normalizedProgress = Math.abs(eclipseProgress - 0.5) * 2 // 0 at middle, 1 at start/end
-
+    const normalizedProgress = Math.abs(eclipseProgress - 0.5) * 2
     if (eclipseType === "total") {
-      // Total eclipse gets very dark at the center
       newBrightness = normalizedProgress < 0.2 ? 0.05 : 0.3 + normalizedProgress * 0.7
     } else if (eclipseType === "annular") {
-      // Annular eclipse stays brighter
       newBrightness = normalizedProgress < 0.2 ? 0.3 : 0.5 + normalizedProgress * 0.5
     } else {
-      // Partial eclipse has intermediate darkness
       newBrightness = normalizedProgress < 0.2 ? 0.2 : 0.4 + normalizedProgress * 0.6
     }
 
@@ -92,14 +138,12 @@ function EclipseShadow({ eclipseProgress, eclipseType }: EclipseShadowProps) {
   )
 }
 
-// Corona visibility effect
 interface CoronaEffectProps {
   eclipseProgress: number
   eclipseType: 'total' | 'annular' | 'partial'
 }
 
 function CoronaEffect({ eclipseProgress, eclipseType }: CoronaEffectProps) {
-  // Using useMemo instead of useState + useEffect to prevent infinite loops
   const visible = useMemo(() => {
     const normalizedProgress = Math.abs(eclipseProgress - 0.5) * 2 // 0 at middle, 1 at start/end
     return eclipseType === "total" && normalizedProgress < 0.1
@@ -120,21 +164,18 @@ function CoronaEffect({ eclipseProgress, eclipseType }: CoronaEffectProps) {
   )
 }
 
-// Diamond ring effect
 interface DiamondRingEffectProps {
   eclipseProgress: number
   eclipseType: 'total' | 'annular' | 'partial'
 }
 
 function DiamondRingEffect({ eclipseProgress, eclipseType }: DiamondRingEffectProps) {
-  // Using useMemo to calculate visibility without state updates
   const { visible, position } = useMemo(() => {
     const normalizedProgress = Math.abs(eclipseProgress - 0.5) * 2 // 0 at middle, 1 at start/end
     const showEffect = eclipseType === "total" && normalizedProgress > 0.1 && normalizedProgress < 0.15
 
     let pos = { x: 0, y: 0 }
     if (showEffect) {
-      // Use a deterministic position based on progress to avoid recalculations
       const angle = (eclipseProgress * 10) % (Math.PI * 2)
       const radius = 120
       pos = {
@@ -162,7 +203,6 @@ function DiamondRingEffect({ eclipseProgress, eclipseType }: DiamondRingEffectPr
   )
 }
 
-// Controls panel component
 interface ControlsPanelProps {
   eclipseType: 'total' | 'annular' | 'partial'
   setEclipseType: (type: 'total' | 'annular' | 'partial') => void
@@ -299,7 +339,6 @@ function ControlsPanel({
   )
 }
 
-// Educational content about solar eclipses
 interface EclipseInfoProps {
   eclipseType: 'total' | 'annular' | 'partial';
 }
@@ -418,12 +457,10 @@ export default function SolarEclipseSimulator() {
   const [eclipseType, setEclipseType] = useState<"total" | "annular" | "partial">("total")
   const [isControlsOpen, setIsControlsOpen] = useState(false)
 
-  // Scroll to top on component mount
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
-  // Handle eclipse animation with proper dependency array
   useEffect(() => {
     if (!isPlaying) return
 
@@ -437,7 +474,6 @@ export default function SolarEclipseSimulator() {
     return () => clearInterval(interval)
   }, [isPlaying, animationSpeed])
 
-  // Get current eclipse phase description
   const getEclipsePhase = () => {
     if (eclipseProgress < 0.4) return "Approaching"
     if (eclipseProgress < 0.45) return "Partial Phase"
@@ -450,34 +486,26 @@ export default function SolarEclipseSimulator() {
     return "Departing"
   }
 
-  // Auto-expand controls on desktop, collapse on mobile
   useEffect(() => {
     const handleResize = () => {
       setIsControlsOpen(window.innerWidth >= 768)
     }
 
-    // Set initial state
     handleResize()
 
-    // Add event listener
     window.addEventListener("resize", handleResize)
 
-    // Clean up
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
   return (
     <div className="w-full min-h-screen bg-black flex flex-col">
-      {/* Fixed height container for the 3D scene */}
       <div className="h-[80vh] md:h-[70vh] relative">
-        {/* Eclipse shadow overlay */}
         <EclipseShadow eclipseProgress={eclipseProgress} eclipseType={eclipseType} />
 
-        {/* Special effects */}
         <CoronaEffect eclipseProgress={eclipseProgress} eclipseType={eclipseType} />
         <DiamondRingEffect eclipseProgress={eclipseProgress} eclipseType={eclipseType} />
 
-        {/* Controls panel - now at the top left */}
         <ControlsPanel
           eclipseType={eclipseType}
           setEclipseType={setEclipseType}
@@ -507,10 +535,8 @@ export default function SolarEclipseSimulator() {
         </div>
       </div>
 
-      {/* Visual separator */}
       <div className="h-4 bg-gradient-to-r from-blue-900 via-purple-900 to-red-900"></div>
 
-      {/* Scrollable content area */}
       <div className="overflow-y-auto bg-gray-950 py-8 px-4">
         <EclipseInfo eclipseType={eclipseType} />
       </div>
