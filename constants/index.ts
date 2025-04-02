@@ -1,4 +1,4 @@
-const simulations = [
+export const simulations = [
     {
       title: "Asteroid Belt Simulation",
       description: "Explore a simulated asteroid belt around a central star.",
