@@ -7,11 +7,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-            Space Phenomena Simulations
+            Scipo 
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Interactive visualizations of astronomical phenomena to help
-            understand the physics of our universe.
+            Science Exploration Through Creative Coding
           </p>
         </header>
 

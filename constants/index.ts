@@ -15,4 +15,12 @@ export const simulations = [
       color: "from-blue-500 to-cyan-700",
       icon: "🔭",
     },
+    {
+      title: "Tidal Locking Simulator",
+      description: "Visualize how one side of a planet always faces its star.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/tidal-locking",
+      color: "from-orange-500 to-red-700",
+      icon: "🌓",
+    }
 ]
