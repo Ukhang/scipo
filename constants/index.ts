@@ -22,5 +22,29 @@ export const simulations = [
       href: "/tidal-locking",
       color: "from-orange-500 to-red-700",
       icon: "🌓",
-    }
+    },
+    {
+      title: "Solar Eclipse Animation",
+      description: "Simulate the movement of the Moon blocking the Sun.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/solar-eclipse",
+      color: "from-gray-800 to-gray-900",
+      icon: "🌑",
+    },
+    {
+      title: "Pulsar Star Effect",
+      description: "Animate a rapidly spinning neutron star emitting pulses of light.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/pulsar-star",
+      color: "from-blue-900 to-indigo-900",
+      icon: "⭐",
+    },
+    {
+      title: "Cosmic Background Radiation",
+      description: "Generate noise patterns resembling the universe's background radiation.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/cosmic-background",
+      color: "from-red-900 to-purple-900",
+      icon: "🌌",
+    },
 ]
