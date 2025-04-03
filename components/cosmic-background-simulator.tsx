@@ -7,6 +7,71 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { createNoise3D } from "simplex-noise";
 
+type CMBTextureProps = {
+  resolution?: number;
+  contrast?: number;
+  colorScheme?: "thermal" | "planck" | "grayscale";
+  seed?: number;
+};
+
+function generateCMBTexture({
+  resolution = 512,
+  contrast = 1,
+  colorScheme = "thermal",
+  seed = 1,
+}: CMBTextureProps) {
+  const canvas = document.createElement("canvas");
+  canvas.width = resolution;
+  canvas.height = resolution / 2; // For equirectangular mapping
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.Texture();
+
+  const noise3D = createNoise3D();
+
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const u = x / canvas.width;
+      const v = y / canvas.height;
+      const theta = u * Math.PI * 2;
+      const phi = v * Math.PI;
+
+      const nx = Math.sin(phi) * Math.cos(theta);
+      const ny = Math.sin(phi) * Math.sin(theta);
+      const nz = Math.cos(phi);
+
+      let noiseValue = 0;
+      noiseValue += noise3D(nx * 1 * seed, ny * 1 * seed, nz * 1 * seed) * 0.5;
+      noiseValue += noise3D(nx * 2 * seed, ny * 2 * seed, nz * 2 * seed) * 0.25;
+      noiseValue +=
+        noise3D(nx * 4 * seed, ny * 4 * seed, nz * 4 * seed) * 0.125;
+      noiseValue +=
+        noise3D(nx * 8 * seed, ny * 8 * seed, nz * 8 * seed) * 0.0625;
+
+      noiseValue = noiseValue * 0.5 + 0.5;
+      noiseValue = Math.pow(noiseValue, 1 / contrast);
+
+      const color = getCMBColor(noiseValue, colorScheme);
+
+      const index = (y * canvas.width + x) * 4;
+      data[index] = color.r;
+      data[index + 1] = color.g;
+      data[index + 2] = color.b;
+      data[index + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  return texture;
+}
+
 type CMBColorScheme = "thermal" | "planck" | "grayscale";
 
 function getCMBColor(value: number, scheme: CMBColorScheme) {
@@ -20,7 +85,9 @@ function getCMBColor(value: number, scheme: CMBColorScheme) {
     case "planck":
       return {
         r: Math.floor(value * 255),
-        g: Math.floor(value < 0.5 ? value * 255 * 2 : 255 - (value - 0.5) * 255 * 2),
+        g: Math.floor(
+          value < 0.5 ? value * 255 * 2 : 255 - (value - 0.5) * 255 * 2
+        ),
         b: Math.floor(value < 0.3 ? value * 255 * 3 : 0),
       };
     case "grayscale":
