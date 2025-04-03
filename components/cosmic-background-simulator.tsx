@@ -7,7 +7,63 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { createNoise3D } from "simplex-noise";
 
+type TemperatureFluctuationGraphProps = {
+  colorScheme: "thermal" | "planck" | "default";
+};
 
+function TemperatureFluctuationGraph({
+  colorScheme,
+}: TemperatureFluctuationGraphProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+
+    if (colorScheme === "thermal") {
+      gradient.addColorStop(0, "blue");
+      gradient.addColorStop(0.5, "green");
+      gradient.addColorStop(1, "red");
+    } else if (colorScheme === "planck") {
+      gradient.addColorStop(0, "darkblue");
+      gradient.addColorStop(0.3, "green");
+      gradient.addColorStop(0.7, "yellow");
+      gradient.addColorStop(1, "red");
+    } else {
+      gradient.addColorStop(0, "black");
+      gradient.addColorStop(1, "white");
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 20, canvas.width, 30);
+
+    ctx.fillStyle = "white";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Colder (-200 μK)", 0, 15);
+    ctx.textAlign = "right";
+    ctx.fillText("Hotter (+200 μK)", canvas.width, 15);
+  }, [colorScheme]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={300}
+      height={70}
+      className="w-full max-w-md mx-auto"
+    />
+  );
+}
 
 function CMBInfo() {
   return (
