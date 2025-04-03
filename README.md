@@ -5,8 +5,9 @@
 <p align="center">
     <strong>Scipo</strong> - Science Exploration Through Creative Coding
 </p>
-
-Scipo is a collection of interactive simulations that explore various astronomical and physical phenomena through creative coding. More simulations will be added in the future, so stay tuned!
+<p align="center">
+  Scipo is a collection of interactive simulations that explore various astronomical and physical phenomena through creative coding. More simulations will be added in the future, so  stay tuned!
+</p>
 
 ## 🌠 Available Simulations
 
