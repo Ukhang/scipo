@@ -6,6 +6,97 @@ import { OrbitControls, Stars, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+type PulsarStarProps = {
+  rotationSpeed: number;
+  magneticFieldAngle: number;
+  pulseFrequency: number;
+  pulseIntensity: number;
+};
+
+function PulsarStar({
+  rotationSpeed,
+  magneticFieldAngle,
+  pulseFrequency,
+  pulseIntensity,
+}: PulsarStarProps) {
+  const starRef = useRef<THREE.Mesh>(null);
+  const magneticFieldRef = useRef<THREE.Group>(null);
+  const pulseTimerRef = useRef(0);
+
+  // Rotate the star and magnetic field
+  useFrame((state, delta) => {
+    if (starRef.current) {
+      // Rotate the neutron star rapidly
+      starRef.current.rotation.y += delta * rotationSpeed;
+    }
+
+    if (magneticFieldRef.current) {
+      // Rotate the magnetic field with the star
+      magneticFieldRef.current.rotation.y += delta * rotationSpeed;
+    }
+
+    // Update pulse timer
+    pulseTimerRef.current += delta;
+  });
+
+  return (
+    <group>
+      {/* Neutron star core */}
+      <mesh ref={starRef}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshStandardMaterial
+          color="#E0E0FF"
+          emissive="#8080FF"
+          emissiveIntensity={0.5}
+        />
+      </mesh>
+
+      {/* Magnetic field and emission beams */}
+      <group ref={magneticFieldRef} rotation={[0, 0, magneticFieldAngle]}>
+        {/* Magnetic field lines (simplified visualization) */}
+        <group>
+          {[...Array(12)].map((_, i) => (
+            <mesh
+              key={i}
+              position={[0, 0, 0]}
+              rotation={[0, (i / 12) * Math.PI * 2, 0]}
+            >
+              <torusGeometry args={[1.5, 0.02, 16, 100, Math.PI]} />
+              <meshBasicMaterial color="#4040FF" transparent opacity={0.3} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Emission beams */}
+        <EmissionBeam
+          direction={[0, 1, 0]}
+          pulseFrequency={pulseFrequency}
+          pulseIntensity={pulseIntensity}
+          color="#80A0FF"
+        />
+        <EmissionBeam
+          direction={[0, -1, 0]}
+          pulseFrequency={pulseFrequency}
+          pulseIntensity={pulseIntensity}
+          color="#80A0FF"
+        />
+      </group>
+
+      {/* Accretion disk (optional for some pulsars) */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.5, 4, 64]} />
+        <meshBasicMaterial
+          color="#FF8060"
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.4}
+          map={createAccretionDiskTexture()}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 type CreateAccretionDiskTextureProps = {
   size?: number;
   colorStops?: { offset: number; color: string }[];
@@ -413,6 +504,96 @@ function PulsarInfo() {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PulsarStarSimulator() {
+  // Simulation parameters
+  const [rotationSpeed, setRotationSpeed] = useState(5);
+  const [magneticFieldAngle, setMagneticFieldAngle] = useState(Math.PI / 6); // ~30 degrees
+  const [pulseFrequency, setPulseFrequency] = useState(1.5); // Hz
+  const [pulseIntensity, setPulseIntensity] = useState(1.5);
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
+
+  // Scroll to top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Auto-expand controls on desktop, collapse on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsControlsOpen(window.innerWidth >= 768);
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Clean up
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="w-full min-h-screen bg-black flex flex-col">
+      <div className="h-[80vh] md:h-[70vh] relative">
+        {/* Controls panel */}
+        <ControlsPanel
+          rotationSpeed={rotationSpeed}
+          setRotationSpeed={setRotationSpeed}
+          magneticFieldAngle={magneticFieldAngle}
+          setMagneticFieldAngle={setMagneticFieldAngle}
+          pulseFrequency={pulseFrequency}
+          setPulseFrequency={setPulseFrequency}
+          pulseIntensity={pulseIntensity}
+          setPulseIntensity={setPulseIntensity}
+          isControlsOpen={isControlsOpen}
+          setIsControlsOpen={setIsControlsOpen}
+        />
+
+        <div id="canvas-container" className="h-full w-full">
+          <Canvas camera={{ position: [0, 5, 15], fov: 45 }}>
+            <ambientLight intensity={0.1} />
+            <pointLight position={[10, 10, 10]} intensity={0.5} />
+            <Stars
+              radius={100}
+              depth={50}
+              count={5000}
+              factor={4}
+              saturation={0}
+              fade
+              speed={1}
+            />
+
+            <PulsarStar
+              rotationSpeed={rotationSpeed}
+              magneticFieldAngle={magneticFieldAngle}
+              pulseFrequency={pulseFrequency}
+              pulseIntensity={pulseIntensity}
+            />
+
+            <OrbitControls
+              enablePan={true}
+              enableZoom={true}
+              enableRotate={true}
+              minDistance={5}
+              maxDistance={50}
+              zoomSpeed={0.5}
+            />
+          </Canvas>
+        </div>
+      </div>
+
+      {/* Visual separator */}
+      <div className="h-4 bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900"></div>
+
+      {/* Scrollable content area */}
+      <div className="overflow-y-auto bg-black py-8 px-4">
+        <PulsarInfo />
       </div>
     </div>
   );
