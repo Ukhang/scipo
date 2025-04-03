@@ -6,6 +6,67 @@ import { OrbitControls, Stars, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+type CreateAccretionDiskTextureProps = {
+  size?: number;
+  colorStops?: { offset: number; color: string }[];
+  brightSpotCount?: number;
+};
+
+function createAccretionDiskTexture({
+  size = 512,
+  colorStops = [
+    { offset: 0, color: "rgba(255, 220, 180, 0.8)" },
+    { offset: 0.4, color: "rgba(255, 160, 120, 0.6)" },
+    { offset: 0.8, color: "rgba(200, 80, 80, 0.3)" },
+    { offset: 1, color: "rgba(100, 30, 30, 0)" },
+  ],
+  brightSpotCount = 100,
+}: CreateAccretionDiskTextureProps = {}): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext("2d");
+  if (!context) return new THREE.Texture();
+
+  // Create radial gradient
+  const gradient = context.createRadialGradient(
+    size / 2,
+    size / 2,
+    size / 8,
+    size / 2,
+    size / 2,
+    size / 2
+  );
+  colorStops.forEach(({ offset, color }) =>
+    gradient.addColorStop(offset, color)
+  );
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, size, size);
+
+  // Add some random bright spots
+  for (let i = 0; i < brightSpotCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = ((Math.random() * 0.3 + 0.2) * size) / 2;
+    const x = size / 2 + Math.cos(angle) * radius;
+    const y = size / 2 + Math.sin(angle) * radius;
+    const brightness = Math.random() * 100 + 155;
+
+    context.fillStyle = `rgba(${brightness}, ${brightness * 0.8}, ${
+      brightness * 0.6
+    }, 0.8)`;
+    context.beginPath();
+    context.arc(x, y, Math.random() * 2 + 1, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  return texture;
+}
+
 type EmissionBeamProps = {
   direction: [number, number, number];
   pulseFrequency: number;
