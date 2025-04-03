@@ -6,6 +6,84 @@ import { OrbitControls, Stars, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+type EmissionBeamProps = {
+  direction: [number, number, number];
+  pulseFrequency: number;
+  pulseIntensity: number;
+  color: THREE.ColorRepresentation;
+};
+
+function EmissionBeam({
+  direction,
+  pulseFrequency,
+  pulseIntensity,
+  color,
+}: EmissionBeamProps) {
+  const beamRef = useRef<THREE.Mesh>(null);
+  const pulseTimerRef = useRef(0);
+  const [pulse, setPulse] = useState(false);
+
+  // Update pulse state
+  useFrame((state, delta) => {
+    pulseTimerRef.current += delta;
+
+    // Trigger pulse based on frequency
+    if (pulseTimerRef.current > 1 / pulseFrequency) {
+      setPulse(true);
+      setTimeout(() => setPulse(false), 150); // Pulse duration
+      pulseTimerRef.current = 0;
+    }
+
+    // Update beam scale based on pulse state
+    if (beamRef.current) {
+      const targetScale = pulse ? pulseIntensity : 0.2;
+      beamRef.current.scale.x = THREE.MathUtils.lerp(
+        beamRef.current.scale.x,
+        targetScale,
+        delta * 10
+      );
+      beamRef.current.scale.z = beamRef.current.scale.z =
+        beamRef.current.scale.x;
+    }
+  });
+
+  // Calculate position and rotation based on direction
+  const position: [number, number, number] = [
+    direction[0] * 1,
+    direction[1] * 1,
+    direction[2] * 1,
+  ];
+  const lookAt = new THREE.Vector3(...direction).multiplyScalar(10);
+
+  return (
+    <group position={position} lookAt={lookAt}>
+      {/* Main beam */}
+      <mesh ref={beamRef}>
+        <cylinderGeometry args={[0.3, 0.8, 15, 16, 1, true]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.6}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Beam trail effect */}
+      <Trail
+        width={1}
+        length={5}
+        color={color}
+        attenuation={(width) => width * 0.5}
+      >
+        <mesh position={[0, 7, 0]}>
+          <sphereGeometry args={[0.4, 8, 8]} />
+          <meshBasicMaterial color={color} />
+        </mesh>
+      </Trail>
+    </group>
+  );
+}
+
 type ControlsPanelProps = {
   rotationSpeed: number;
   setRotationSpeed: (value: number) => void;
