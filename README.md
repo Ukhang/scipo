@@ -1,13 +1,6 @@
-<div align="center">
- <img src="https://github.com/user-attachments/assets/a3a48f90-de00-4735-a3d0-72377f1be3cc" alt="uotion" style="margin-right: 10px;">
-</div>
-
-<h1 align="center">
-  <strong>Scipo</strong> - Science Exploration Through Creative Coding
-</h1>
-<p align="center">
+![logo](https://github.com/user-attachments/assets/515d044a-070a-4ec7-9c16-92550acb3d0c)
+# Scipo - Science Exploration Through Creative Coding
   Scipo is a collection of interactive simulations that explore various astronomical and physical phenomena through creative coding. More simulations will be added in the future, so  stay tuned!
-</p>
 
 ## 🌠 Available Simulations
 
