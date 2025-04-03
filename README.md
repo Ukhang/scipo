@@ -13,11 +13,11 @@ Scipo is a collection of interactive simulations that explore various astronomic
 | ⭐ **Pulsar Star Effect** | Animate a rapidly spinning neutron star emitting pulses of light. | [Explore simulation](#) |
 | 🌌 **Cosmic Background Radiation** | Generate noise patterns resembling the universe's background radiation. | [Explore simulation](#) |
 
-## 🚀 More Coming Soon!
+## More Coming Soon!
 This list is continuously expanding as new simulations are developed. Stay connected for future updates!
 
 ---
 
-### 📜 License
+### License
 This project is open-source. Feel free to contribute and expand the simulations!
 
