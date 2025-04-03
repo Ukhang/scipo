@@ -1,16 +1,66 @@
-import Link from "next/link";
-import { simulations } from "@/constants";
+import Link from "next/link"
 
 export default function Home() {
+  const simulations = [
+    {
+      title: "Asteroid Belt Simulation",
+      description: "Explore a simulated asteroid belt around a central star.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/asteroid-belt",
+      color: "from-purple-500 to-indigo-700",
+      icon: "🪨",
+    },
+    {
+      title: "Exoplanet Transit Visualization",
+      description: "See how astronomers detect planets by measuring star brightness dips.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/exoplanet-transit",
+      color: "from-blue-500 to-cyan-700",
+      icon: "🔭",
+    },
+    {
+      title: "Tidal Locking Simulator",
+      description: "Visualize how one side of a planet always faces its star.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/tidal-locking",
+      color: "from-orange-500 to-red-700",
+      icon: "🌓",
+    },
+    {
+      title: "Solar Eclipse Animation",
+      description: "Simulate the movement of the Moon blocking the Sun.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/solar-eclipse",
+      color: "from-gray-800 to-gray-900",
+      icon: "🌑",
+    },
+    {
+      title: "Pulsar Star Effect",
+      description: "Animate a rapidly spinning neutron star emitting pulses of light.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/pulsar-star",
+      color: "from-blue-900 to-indigo-900",
+      icon: "⭐",
+    },
+    {
+      title: "Cosmic Background Radiation",
+      description: "Generate noise patterns resembling the universe's background radiation.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/cosmic-background",
+      color: "from-red-900 to-purple-900",
+      icon: "🌌",
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-            Scipo
+            Space Phenomena Simulations
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Science Exploration Through Creative Coding
+            Interactive visualizations of astronomical phenomena to help understand the physics of our universe.
           </p>
         </header>
 
