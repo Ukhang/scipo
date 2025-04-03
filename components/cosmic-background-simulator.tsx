@@ -7,6 +7,30 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { createNoise3D } from "simplex-noise";
 
+type CMBColorScheme = "thermal" | "planck" | "grayscale";
+
+function getCMBColor(value: number, scheme: CMBColorScheme) {
+  switch (scheme) {
+    case "thermal":
+      return {
+        r: Math.floor(value * 255 * 2 > 255 ? 255 : value * 255 * 2),
+        g: Math.floor(value < 0.5 ? value * 255 * 2 : (1 - value) * 255 * 2),
+        b: Math.floor(value < 0.5 ? 255 : 255 - (value - 0.5) * 255 * 2),
+      };
+    case "planck":
+      return {
+        r: Math.floor(value * 255),
+        g: Math.floor(value < 0.5 ? value * 255 * 2 : 255 - (value - 0.5) * 255 * 2),
+        b: Math.floor(value < 0.3 ? value * 255 * 3 : 0),
+      };
+    case "grayscale":
+      const gray = Math.floor(value * 255);
+      return { r: gray, g: gray, b: gray };
+    default:
+      return { r: 0, g: 0, b: 0 };
+  }
+}
+
 type ControlsPanelProps = {
   resolution: number;
   setResolution: (value: number) => void;
