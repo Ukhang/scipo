@@ -7,7 +7,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-            Scipo 
+            Scipo
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Science Exploration Through Creative Coding
@@ -18,9 +18,7 @@ export default function Home() {
           {simulations.map((sim) => (
             <Link href={sim.href} key={sim.title} className="group block">
               <div className="bg-gray-900 rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-900/20 h-full flex flex-col">
-                <div
-                  className={`h-48 bg-gradient-to-br ${sim.color} flex items-center justify-center`}
-                >
+                <div className={`h-48 bg-gradient-to-br ${sim.color} flex items-center justify-center`}>
                   <div className="text-6xl opacity-70">{sim.icon}</div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
@@ -48,5 +46,6 @@ export default function Home() {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
