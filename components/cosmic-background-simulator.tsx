@@ -7,6 +7,46 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { createNoise3D } from "simplex-noise";
 
+type CMBSphereProps = {
+  resolution?: number;
+  contrast?: number;
+  colorScheme?: "thermal" | "planck" | "grayscale";
+  seed?: number;
+};
+
+function CMBSphere({
+  resolution = 512,
+  contrast = 1,
+  colorScheme = "thermal",
+  seed = 1,
+}: CMBSphereProps) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const texture = useMemo(
+    () =>
+      generateCMBTexture({
+        resolution,
+        contrast,
+        colorScheme,
+        seed,
+      }), // Pass the parameters as an object here
+    [resolution, contrast, colorScheme, seed]
+  );
+
+  // Slow rotation for visual interest
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.05;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[10, 64, 64]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
+    </mesh>
+  );
+}
+
 type CMBTextureProps = {
   resolution?: number;
   contrast?: number;
@@ -251,7 +291,7 @@ function ControlsPanel({
 }
 
 type TemperatureFluctuationGraphProps = {
-  colorScheme: "thermal" | "planck" | "default";
+    colorScheme: "thermal" | "planck" | "grayscale" | "default";
 };
 
 function TemperatureFluctuationGraph({
@@ -445,6 +485,93 @@ function CMBInfo() {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CosmicBackgroundSimulator() {
+  // Simulation parameters
+  const [resolution, setResolution] = useState(512);
+  const [contrast, setContrast] = useState(1.0);
+  const [colorScheme, setColorScheme] = useState<
+    "thermal" | "planck" | "grayscale"
+  >("thermal");
+  const [seed, setSeed] = useState(1.0);
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
+
+  // Scroll to top on component mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Auto-expand controls on desktop, collapse on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsControlsOpen(window.innerWidth >= 768);
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Clean up
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="w-full min-h-screen bg-black flex flex-col">
+      <div className="h-[80vh] md:h-[70vh] relative">
+        {/* Controls panel */}
+        <ControlsPanel
+          resolution={resolution}
+          setResolution={setResolution}
+          contrast={contrast}
+          setContrast={setContrast}
+          colorScheme={colorScheme}
+          setColorScheme={setColorScheme}
+          seed={seed}
+          setSeed={setSeed}
+          isControlsOpen={isControlsOpen}
+          setIsControlsOpen={setIsControlsOpen}
+        />
+
+        <div id="canvas-container" className="h-full w-full">
+          <Canvas camera={{ position: [0, 0, 0.1], fov: 70 }}>
+            <CMBSphere
+              resolution={resolution}
+              contrast={contrast}
+              colorScheme={colorScheme}
+              seed={seed}
+            />
+            <OrbitControls
+              enablePan={true}
+              enableZoom={true}
+              enableRotate={true}
+              zoomSpeed={0.5}
+              autoRotate={false}
+              autoRotateSpeed={0.5}
+            />
+          </Canvas>
+        </div>
+      </div>
+
+      {/* Temperature scale */}
+      <div className="bg-black py-4 px-6">
+        <h3 className="text-white text-center mb-2">
+          Temperature Fluctuations
+        </h3>
+        <TemperatureFluctuationGraph colorScheme={colorScheme} />
+      </div>
+
+      {/* Visual separator */}
+      <div className="h-4 bg-gradient-to-r from-blue-900 via-purple-900 to-red-900"></div>
+
+      {/* Scrollable content area */}
+      <div className="overflow-y-auto bg-black py-8 px-4">
+        <CMBInfo />
       </div>
     </div>
   );
