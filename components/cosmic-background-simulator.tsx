@@ -7,6 +7,158 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { createNoise3D } from "simplex-noise";
 
+type ControlsPanelProps = {
+  resolution: number;
+  setResolution: (value: number) => void;
+  contrast: number;
+  setContrast: (value: number) => void;
+  colorScheme: "thermal" | "planck" | "grayscale";
+  setColorScheme: (value: "thermal" | "planck" | "grayscale") => void;
+  seed: number;
+  setSeed: (value: number) => void;
+  isControlsOpen: boolean;
+  setIsControlsOpen: (value: boolean) => void;
+};
+
+function ControlsPanel({
+  resolution,
+  setResolution,
+  contrast,
+  setContrast,
+  colorScheme,
+  setColorScheme,
+  seed,
+  setSeed,
+  isControlsOpen,
+  setIsControlsOpen,
+}: ControlsPanelProps) {
+  return (
+    <div
+      className={`absolute z-30 transition-all duration-300 ease-in-out left-0
+        ${
+          isControlsOpen
+            ? "top-0 w-full md:w-80 bg-black/90 p-4 rounded-br-lg max-h-[80vh] overflow-y-auto"
+            : "top-0 w-full md:w-80 bg-black/70 p-2 rounded-br-lg"
+        }`}
+    >
+      {/* Mobile toggle button */}
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="text-lg font-bold text-white">
+          Cosmic Background Radiation
+        </h1>
+        <button
+          onClick={() => setIsControlsOpen(!isControlsOpen)}
+          className="p-1 bg-gray-800 rounded-md text-white"
+          aria-label={isControlsOpen ? "Collapse controls" : "Expand controls"}
+        >
+          {isControlsOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
+      </div>
+
+      {/* Controls content - only shown when expanded */}
+      {isControlsOpen && (
+        <div className="space-y-4">
+          <p className="text-white mb-4">
+            Explore a visualization of the Cosmic Microwave Background (CMB)
+            radiation, the oldest light in the universe.
+          </p>
+
+          <div>
+            <label htmlFor="resolution" className="block mb-1 text-white">
+              Resolution: {resolution}px
+            </label>
+            <input
+              id="resolution"
+              type="range"
+              min="128"
+              max="1024"
+              step="128"
+              value={resolution}
+              onChange={(e) => setResolution(Number.parseInt(e.target.value))}
+              className="w-full bg-gray-700 rounded-lg appearance-none h-2"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Higher values may affect performance
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="contrast" className="block mb-1 text-white">
+              Contrast: {contrast.toFixed(1)}
+            </label>
+            <input
+              id="contrast"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={contrast}
+              onChange={(e) => setContrast(Number.parseFloat(e.target.value))}
+              className="w-full bg-gray-700 rounded-lg appearance-none h-2"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-white">Color Scheme:</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setColorScheme("thermal")}
+                className={`px-2 py-1 rounded-md text-sm ${
+                  colorScheme === "thermal" ? "bg-blue-600" : "bg-gray-700"
+                } text-white`}
+              >
+                Thermal
+              </button>
+              <button
+                onClick={() => setColorScheme("planck")}
+                className={`px-2 py-1 rounded-md text-sm ${
+                  colorScheme === "planck" ? "bg-blue-600" : "bg-gray-700"
+                } text-white`}
+              >
+                Planck
+              </button>
+              <button
+                onClick={() => setColorScheme("grayscale")}
+                className={`px-2 py-1 rounded-md text-sm ${
+                  colorScheme === "grayscale" ? "bg-blue-600" : "bg-gray-700"
+                } text-white`}
+              >
+                Grayscale
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="seed" className="block mb-1 text-white">
+              Random Seed: {seed.toFixed(2)}
+            </label>
+            <input
+              id="seed"
+              type="range"
+              min="0.5"
+              max="5"
+              step="0.01"
+              value={seed}
+              onChange={(e) => setSeed(Number.parseFloat(e.target.value))}
+              className="w-full bg-gray-700 rounded-lg appearance-none h-2"
+            />
+            <button
+              onClick={() => setSeed(Math.random() * 4.5 + 0.5)}
+              className="mt-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-md text-sm text-white"
+            >
+              Randomize
+            </button>
+          </div>
+
+          <p className="text-xs opacity-70 text-white">
+            Use mouse to orbit, scroll to zoom
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type TemperatureFluctuationGraphProps = {
   colorScheme: "thermal" | "planck" | "default";
 };
