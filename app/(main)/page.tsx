@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 
 export default function Home() {
   const simulations = [
@@ -12,7 +12,8 @@ export default function Home() {
     },
     {
       title: "Exoplanet Transit Visualization",
-      description: "See how astronomers detect planets by measuring star brightness dips.",
+      description:
+        "See how astronomers detect planets by measuring star brightness dips.",
       image: "/placeholder.svg?height=200&width=400",
       href: "/exoplanet-transit",
       color: "from-blue-500 to-cyan-700",
@@ -36,7 +37,8 @@ export default function Home() {
     },
     {
       title: "Pulsar Star Effect",
-      description: "Animate a rapidly spinning neutron star emitting pulses of light.",
+      description:
+        "Animate a rapidly spinning neutron star emitting pulses of light.",
       image: "/placeholder.svg?height=200&width=400",
       href: "/pulsar-star",
       color: "from-blue-900 to-indigo-900",
@@ -44,23 +46,24 @@ export default function Home() {
     },
     {
       title: "Cosmic Background Radiation",
-      description: "Generate noise patterns resembling the universe's background radiation.",
+      description:
+        "Generate noise patterns resembling the universe's background radiation.",
       image: "/placeholder.svg?height=200&width=400",
       href: "/cosmic-background",
       color: "from-red-900 to-purple-900",
       icon: "🌌",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-            Space Phenomena Simulations
+            Scipo
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Interactive visualizations of astronomical phenomena to help understand the physics of our universe.
+            Science Exploration Through Creative Coding{" "}
           </p>
         </header>
 
@@ -68,7 +71,9 @@ export default function Home() {
           {simulations.map((sim) => (
             <Link href={sim.href} key={sim.title} className="group block">
               <div className="bg-gray-900 rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-900/20 h-full flex flex-col">
-                <div className={`h-48 bg-gradient-to-br ${sim.color} flex items-center justify-center`}>
+                <div
+                  className={`h-48 bg-gradient-to-br ${sim.color} flex items-center justify-center`}
+                >
                   <div className="text-6xl opacity-70">{sim.icon}</div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
@@ -96,6 +101,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

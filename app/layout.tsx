@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Scipo - Space Phenomena Simulations',
+  title: 'Scipo - Science Exploration Through Creative Coding',
   description: 'Scipo - Science Exploration Through Creative Coding',
   icons: {
     icon: '/logo.svg',
