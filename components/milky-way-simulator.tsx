@@ -1,5 +1,119 @@
-import React, { useEffect } from "react";
-import { Minimize, Maximize, ChevronUp, ChevronDown } from "lucide-react";
+"use client";
+
+import { useRef, useState, useEffect, useMemo } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Stars } from "@react-three/drei";
+import * as THREE from "three";
+import { ChevronDown, ChevronUp, Maximize, Minimize } from "lucide-react";
+
+
+
+function createAccretionDiskTexture() {
+  const size = 512
+  const canvas = document.createElement("canvas")
+  canvas.width = size
+  canvas.height = size
+
+  const context = canvas.getContext("2d")
+  if (!context) return new THREE.Texture()
+
+  // Create radial gradient
+  const gradient = context.createRadialGradient(size / 2, size / 2, size / 8, size / 2, size / 2, size / 2)
+
+  gradient.addColorStop(0, "rgba(255, 220, 180, 0.8)")
+  gradient.addColorStop(0.4, "rgba(255, 160, 120, 0.6)")
+  gradient.addColorStop(0.8, "rgba(200, 80, 80, 0.3)")
+  gradient.addColorStop(1, "rgba(100, 30, 30, 0)")
+
+  context.fillStyle = gradient
+  context.fillRect(0, 0, size, size)
+
+  // Add some random bright spots
+  for (let i = 0; i < 100; i++) {
+    const angle = Math.random() * Math.PI * 2
+    const radius = ((Math.random() * 0.3 + 0.2) * size) / 2
+    const x = size / 2 + Math.cos(angle) * radius
+    const y = size / 2 + Math.sin(angle) * radius
+    const brightness = Math.random() * 100 + 155
+
+    context.fillStyle = `rgba(${brightness}, ${brightness * 0.8}, ${brightness * 0.6}, 0.8)`
+    context.beginPath()
+    context.arc(x, y, Math.random() * 2 + 1, 0, Math.PI * 2)
+    context.fill()
+  }
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+
+  return texture
+}
+
+type CameraControllerProps = {
+  viewMode: "top" | "side" | "inside" | "default";
+  setViewMode: (mode: string) => void;
+};
+
+function CameraController({
+  viewMode,
+  setViewMode,
+}: CameraControllerProps) {
+  const { camera } = useThree();
+  const targetPosition = useRef(new THREE.Vector3());
+  const startPosition = useRef(new THREE.Vector3());
+  const transitionStartTime = useRef(0);
+  const isTransitioning = useRef(false);
+  const TRANSITION_DURATION = 1000; // ms
+
+  // Update target position on viewMode change
+  useEffect(() => {
+    startPosition.current.copy(camera.position);
+    transitionStartTime.current = Date.now();
+    isTransitioning.current = true;
+
+    switch (viewMode) {
+      case "top":
+        targetPosition.current.set(0, 150, 0);
+        break;
+      case "side":
+        targetPosition.current.set(150, 20, 0);
+        break;
+      case "inside":
+        targetPosition.current.set(70, 5, 0);
+        break;
+      default:
+        targetPosition.current.set(120, 80, 80);
+    }
+  }, [viewMode, camera]);
+
+  // Animate camera movement
+  useFrame(() => {
+    if (isTransitioning.current) {
+      const elapsed = Date.now() - transitionStartTime.current;
+      const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
+
+      // Smooth ease in-out
+      const easeProgress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : -1 + (4 - 2 * progress) * progress;
+
+      camera.position.lerpVectors(
+        startPosition.current,
+        targetPosition.current,
+        easeProgress
+      );
+
+      if (progress >= 1) {
+        isTransitioning.current = false;
+      }
+    }
+
+    // Keep camera looking at scene center
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
 
 type ControlsPanelProps = {
   starCount: number;
@@ -24,7 +138,7 @@ type ControlsPanelProps = {
   setIsFullscreen: (value: boolean) => void;
 };
 
-export default function ControlsPanel({
+function ControlsPanel({
   starCount,
   setStarCount,
   showArms,
