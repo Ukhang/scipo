@@ -6,6 +6,182 @@ import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { ChevronDown, ChevronUp, Maximize, Minimize } from "lucide-react";
 
+type GalaxyParticlesProps = {
+  starCount: number;
+  showArms: boolean;
+  showDust: boolean;
+  showBulge: boolean;
+  showHalo: boolean;
+  colorIntensity: number;
+  rotationSpeed: number;
+};
+
+const GALAXY_RADIUS = 100;
+const GALAXY_THICKNESS = 15;
+const SPIRAL_ARMS = 5;
+const SPIRAL_REVOLUTIONS = 2.3;
+const SPIRAL_THICKNESS = 0.5;
+
+function GalaxyParticles({
+  starCount,
+  showArms,
+  showDust,
+  showBulge,
+  showHalo,
+  colorIntensity,
+  rotationSpeed,
+}: GalaxyParticlesProps) {
+  const pointsRef = useRef<THREE.Points>(null);
+  const dustRef = useRef<THREE.Points>(null);
+
+  // Generate galaxy geometry
+  const { positions, colors, dustPositions, dustColors } = useMemo(() => {
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+    const dustPositions = new Float32Array(starCount * 0.3 * 3); // 30% of stars are dust
+    const dustColors = new Float32Array(starCount * 0.3 * 3);
+
+    let dustIndex = 0;
+
+    for (let i = 0; i < starCount; i++) {
+      const i3 = i * 3;
+
+      // Determine if this star is in the bulge, arms, or halo
+      const randVal = Math.random();
+      let x, y, z, r, theta;
+
+      // Central bulge (25% of stars)
+      if (randVal < 0.25 && showBulge) {
+        r = Math.pow(Math.random(), 2) * GALAXY_RADIUS * 0.15;
+        theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        x = r * Math.sin(phi) * Math.cos(theta);
+        y = r * Math.sin(phi) * Math.sin(theta);
+        z = r * Math.cos(phi) * 0.5; // Flatten slightly
+
+        // Bulge stars are more yellow/red
+        colors[i3] = 1.0;
+        colors[i3 + 1] = 0.7 + Math.random() * 0.3;
+        colors[i3 + 2] = 0.5 * Math.random();
+      }
+      // Spiral arms (60% of stars)
+      else if ((randVal < 0.85 || !showHalo) && showArms) {
+        r = Math.pow(Math.random(), 2) * GALAXY_RADIUS;
+
+        const armAngle = (Math.floor(Math.random() * SPIRAL_ARMS) / SPIRAL_ARMS) * Math.PI * 2;
+        theta = armAngle + (r / GALAXY_RADIUS) * SPIRAL_REVOLUTIONS * Math.PI * 2;
+
+        theta += (Math.random() - 0.5) * SPIRAL_THICKNESS * (1 - r / GALAXY_RADIUS);
+
+        x = r * Math.cos(theta);
+        y = r * Math.sin(theta);
+
+        const thickness = GALAXY_THICKNESS * (1 - (r / GALAXY_RADIUS) * 0.8);
+        z = (Math.random() - 0.5) * thickness;
+
+        const distanceRatio = r / GALAXY_RADIUS;
+
+        if (distanceRatio > 0.8) {
+          colors[i3] = 0.7 * Math.random();
+          colors[i3 + 1] = 0.7 * Math.random();
+          colors[i3 + 2] = 0.9 + Math.random() * 0.1;
+        } else if (distanceRatio > 0.5) {
+          colors[i3] = 0.9 + Math.random() * 0.1;
+          colors[i3 + 1] = 0.9 + Math.random() * 0.1;
+          colors[i3 + 2] = 0.7 * Math.random();
+        } else {
+          colors[i3] = 0.9 + Math.random() * 0.1;
+          colors[i3 + 1] = 0.7 * Math.random();
+          colors[i3 + 2] = 0.4 * Math.random();
+        }
+
+        if (Math.random() < 0.1 && dustIndex < dustPositions.length / 3 && showDust) {
+          const di3 = dustIndex * 3;
+          dustPositions[di3] = x;
+          dustPositions[di3 + 1] = y;
+          dustPositions[di3 + 2] = z;
+
+          dustColors[di3] = 0.5 + Math.random() * 0.2;
+          dustColors[di3 + 1] = 0.3 + Math.random() * 0.1;
+          dustColors[di3 + 2] = 0.2 + Math.random() * 0.1;
+
+          dustIndex++;
+        }
+      }
+      // Halo stars (15% of stars)
+      else if (showHalo) {
+        r = GALAXY_RADIUS * (0.5 + Math.random() * 0.5);
+        theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        x = r * Math.sin(phi) * Math.cos(theta);
+        y = r * Math.sin(phi) * Math.sin(theta);
+        z = r * Math.cos(phi);
+
+        colors[i3] = 0.8 + Math.random() * 0.2;
+        colors[i3 + 1] = 0.6 + Math.random() * 0.3;
+        colors[i3 + 2] = 0.6 + Math.random() * 0.3;
+      }
+      // Fallback (should rarely happen)
+      else {
+        x = (Math.random() - 0.5) * GALAXY_RADIUS * 2;
+        y = (Math.random() - 0.5) * GALAXY_RADIUS * 2;
+        z = (Math.random() - 0.5) * GALAXY_THICKNESS;
+
+        colors[i3] = Math.random();
+        colors[i3 + 1] = Math.random();
+        colors[i3 + 2] = Math.random();
+      }
+
+      positions[i3] = x;
+      positions[i3 + 1] = y;
+      positions[i3 + 2] = z;
+
+      colors[i3] *= colorIntensity;
+      colors[i3 + 1] *= colorIntensity;
+      colors[i3 + 2] *= colorIntensity;
+    }
+
+    return { positions, colors, dustPositions, dustColors };
+  }, [starCount, showArms, showDust, showBulge, showHalo, colorIntensity]);
+
+  useFrame((state, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.05 * rotationSpeed;
+    }
+    if (dustRef.current) {
+      dustRef.current.rotation.y += delta * 0.05 * rotationSpeed;
+    }
+  });
+
+  return (
+    <group>
+      <points ref={pointsRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+          <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
+        </bufferGeometry>
+        <pointsMaterial size={0.5} vertexColors transparent opacity={0.8} sizeAttenuation />
+      </points>
+
+      {showDust && (
+        <points ref={dustRef}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={dustPositions.length / 3}
+              array={dustPositions}
+              itemSize={3}
+            />
+            <bufferAttribute attach="attributes-color" count={dustColors.length / 3} array={dustColors} itemSize={3} />
+          </bufferGeometry>
+          <pointsMaterial size={1.5} vertexColors transparent opacity={0.3} sizeAttenuation />
+        </points>
+      )}
+    </group>
+  );
+}
 
 function CentralBlackHole() {
   return (
