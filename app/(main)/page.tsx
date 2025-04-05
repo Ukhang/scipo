@@ -53,6 +53,22 @@ export default function Home() {
       color: "from-red-900 to-purple-900",
       icon: "🌌",
     },
+    {
+      title: "3D Milky Way Map",
+      description: "A starfield representation of our galaxy using particle physics.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/milky-way",
+      color: "from-indigo-800 to-blue-600",
+      icon: "🌀",
+    },
+    {
+      title: "Planetary Collision Simulator",
+      description: "Show what happens when two planets crash into each other.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/planetary-collision",
+      color: "from-red-700 to-orange-600",
+      icon: "💥",
+    },
   ];
 
   return (
@@ -60,10 +76,11 @@ export default function Home() {
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-            Scipo
+            Interactive Science Simulations
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Science Exploration Through Creative Coding{" "}
+            Explore the physics of our universe through interactive
+            visualizations and simulations.
           </p>
         </header>
 
