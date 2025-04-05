@@ -1,31 +1,522 @@
-"use client";
+"use client"
 
-import { useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Stars, useTexture } from "@react-three/drei";
-import * as THREE from "three";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { useRef, useState, useEffect, useMemo } from "react"
+import { Canvas, useFrame } from "@react-three/fiber"
+import { OrbitControls, Stars, useTexture } from "@react-three/drei"
+import * as THREE from "three"
+import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react"
+
+interface PlanetProps {
+  position: [number, number, number]
+  radius: number
+  texture: THREE.Texture
+  atmosphereColor: string
+  atmosphereThickness: number
+  velocity: [number, number, number]
+  onPositionUpdate: (position: [number, number, number]) => void
+  isColliding: boolean
+  deformationFactor?: number
+  rotationSpeed?: number
+  planetType?: "earth" | "mars" | "default"
+}
+
+interface DebrisParticlesProps {
+  active: boolean
+  position: [number, number, number]
+  count: number
+  spread: number
+  speed: number
+  planetType: "earth" | "mars" | "default"
+}
+
+interface ExplosionEffectProps {
+  active: boolean
+  position: [number, number, number]
+  size: number
+}
+
+interface ShockwaveEffectProps {
+  active: boolean
+  position: [number, number, number]
+  speed: number
+}
+
+interface ResultPlanetProps {
+  active: boolean
+  position: [number, number, number]
+  radius: number
+  texture: THREE.Texture
+  rotationSpeed?: number
+}
+
+interface CollisionSceneProps {
+  planet1Size: number
+  planet2Size: number
+  impactAngle: number
+  impactVelocity: number
+  collisionScenario: "merger" | "partial" | "destruction"
+  resetSimulation: boolean
+  isSimulationActive: boolean
+  setIsColliding: (isColliding: boolean) => void
+  setCollisionComplete: (collisionComplete: boolean) => void
+}
 
 interface ControlsPanelProps {
-  planet1Size: number;
-  setPlanet1Size: (size: number) => void;
-  planet2Size: number;
-  setPlanet2Size: (size: number) => void;
-  impactAngle: number;
-  setImpactAngle: (angle: number) => void;
-  impactVelocity: number;
-  setImpactVelocity: (velocity: number) => void;
-  collisionScenario: "merger" | "partial" | "destruction";
-  setCollisionScenario: (
-    scenario: "merger" | "partial" | "destruction"
-  ) => void;
-  isSimulationActive: boolean;
-  setIsSimulationActive: (active: boolean) => void;
-  resetSimulation: () => void;
-  isColliding: boolean;
-  collisionComplete: boolean;
-  isControlsOpen: boolean;
-  setIsControlsOpen: (isOpen: boolean) => void;
+  planet1Size: number
+  setPlanet1Size: (size: number) => void
+  planet2Size: number
+  setPlanet2Size: (size: number) => void
+  impactAngle: number
+  setImpactAngle: (angle: number) => void
+  impactVelocity: number
+  setImpactVelocity: (velocity: number) => void
+  collisionScenario: "merger" | "partial" | "destruction"
+  setCollisionScenario: (scenario: "merger" | "partial" | "destruction") => void
+  isSimulationActive: boolean
+  setIsSimulationActive: (active: boolean) => void
+  resetSimulation: () => void
+  isColliding: boolean
+  collisionComplete: boolean
+  isControlsOpen: boolean
+  setIsControlsOpen: (isOpen: boolean) => void
+}
+
+// Planet component with texture and atmosphere
+const Planet: React.FC<PlanetProps> = ({
+  position,
+  radius,
+  texture,
+  atmosphereColor,
+  atmosphereThickness,
+  velocity,
+  onPositionUpdate,
+  isColliding,
+  deformationFactor = 0,
+  rotationSpeed = 0.2,
+  planetType = "earth",
+}) => {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const atmosphereRef = useRef<THREE.Mesh>(null)
+  const cloudsRef = useRef<THREE.Mesh>(null)
+  const positionRef = useRef(new THREE.Vector3(...position))
+  const velocityRef = useRef(new THREE.Vector3(...velocity))
+
+  useFrame((state, delta) => {
+    if (meshRef.current && !isColliding) {
+      positionRef.current.add(velocityRef.current.clone().multiplyScalar(delta))
+      meshRef.current.position.copy(positionRef.current)
+      meshRef.current.rotation.y += delta * rotationSpeed
+
+      if (atmosphereRef.current) {
+        atmosphereRef.current.position.copy(positionRef.current)
+      }
+
+      if (cloudsRef.current) {
+        cloudsRef.current.position.copy(positionRef.current)
+        cloudsRef.current.rotation.y += delta * (rotationSpeed * 1.2)
+      }
+
+      onPositionUpdate(positionRef.current.toArray())
+    }
+  })
+
+  useEffect(() => {
+    if (meshRef.current && isColliding) {
+      meshRef.current.scale.set(1 - deformationFactor * 0.3, 1 + deformationFactor * 0.2, 1 + deformationFactor * 0.2)
+      if (atmosphereRef.current) {
+        atmosphereRef.current.scale.set(
+          1 - deformationFactor * 0.3,
+          1 + deformationFactor * 0.2,
+          1 + deformationFactor * 0.2,
+        )
+      }
+      if (cloudsRef.current) {
+        cloudsRef.current.scale.set(
+          1 - deformationFactor * 0.3,
+          1 + deformationFactor * 0.2,
+          1 + deformationFactor * 0.2,
+        )
+      }
+    } else if (meshRef.current) {
+      meshRef.current.scale.set(1, 1, 1)
+      if (atmosphereRef.current) atmosphereRef.current.scale.set(1, 1, 1)
+      if (cloudsRef.current) cloudsRef.current.scale.set(1, 1, 1)
+    }
+  }, [isColliding, deformationFactor])
+
+  const planetColor = planetType === "earth" ? "#1E88E5" : planetType === "mars" ? "#D84315" : "#A1887F"
+
+  return (
+    <group>
+      <mesh ref={meshRef} position={positionRef.current.toArray()}>
+        <sphereGeometry args={[radius, 64, 64]} />
+        <meshPhongMaterial map={texture} color={planetColor} shininess={10} />
+      </mesh>
+
+      {planetType === "earth" && (
+        <mesh ref={cloudsRef} position={positionRef.current.toArray()}>
+          <sphereGeometry args={[radius * 1.01, 64, 64]} />
+          <meshPhongMaterial color="#FFFFFF" transparent opacity={0.4} depthWrite={false} />
+        </mesh>
+      )}
+
+      {atmosphereThickness > 0 && (
+        <mesh ref={atmosphereRef} position={positionRef.current.toArray()}>
+          <sphereGeometry args={[radius * (1 + atmosphereThickness), 64, 64]} />
+          <meshBasicMaterial color={atmosphereColor} transparent opacity={0.2} side={THREE.BackSide} />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
+// Debris particle system for collision effects
+const DebrisParticles: React.FC<DebrisParticlesProps> = ({
+  active,
+  position,
+  count,
+  spread,
+  speed,
+  planetType,
+}) => {
+  const pointsRef = useRef<THREE.Points>(null)
+
+  const { positions, velocities, colors, sizes } = useMemo(() => {
+    const positions = new Float32Array(count * 3)
+    const velocities = new Float32Array(count * 3)
+    const colors = new Float32Array(count * 3)
+    const sizes = new Float32Array(count)
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3
+
+      positions[i3] = position[0] + (Math.random() - 0.5) * 2
+      positions[i3 + 1] = position[1] + (Math.random() - 0.5) * 2
+      positions[i3 + 2] = position[2] + (Math.random() - 0.5) * 2
+
+      const theta = Math.random() * Math.PI * 2
+      const phi = Math.acos(2 * Math.random() - 1)
+      const r = Math.random() * spread
+
+      velocities[i3] = r * Math.sin(phi) * Math.cos(theta) * speed
+      velocities[i3 + 1] = r * Math.sin(phi) * Math.sin(theta) * speed
+      velocities[i3 + 2] = r * Math.cos(phi) * speed
+
+      if (planetType === "earth") {
+        const colorType = Math.random()
+        if (colorType < 0.4) {
+          colors[i3] = 0.1 + Math.random() * 0.2
+          colors[i3 + 1] = 0.3 + Math.random() * 0.3
+          colors[i3 + 2] = 0.6 + Math.random() * 0.4
+        } else if (colorType < 0.8) {
+          colors[i3] = 0.2 + Math.random() * 0.3
+          colors[i3 + 1] = 0.5 + Math.random() * 0.5
+          colors[i3 + 2] = 0.1 + Math.random() * 0.2
+        } else {
+          colors[i3] = 0.5 + Math.random() * 0.3
+          colors[i3 + 1] = 0.4 + Math.random() * 0.3
+          colors[i3 + 2] = 0.3 + Math.random() * 0.2
+        }
+      } else if (planetType === "mars") {
+        colors[i3] = 0.7 + Math.random() * 0.3
+        colors[i3 + 1] = 0.3 + Math.random() * 0.3
+        colors[i3 + 2] = 0.1 + Math.random() * 0.2
+      } else {
+        colors[i3] = 0.8 + Math.random() * 0.2
+        colors[i3 + 1] = 0.3 + Math.random() * 0.5
+        colors[i3 + 2] = Math.random() * 0.2
+      }
+
+      sizes[i] = Math.random() < 0.1 ? 2.5 + Math.random() * 3 : 0.5 + Math.random() * 2
+    }
+
+    return { positions, velocities, colors, sizes }
+  }, [count, position, spread, speed, planetType])
+
+  useFrame((state, delta) => {
+    if (!pointsRef.current || !active) return
+
+    const positions = pointsRef.current.geometry.attributes.position.array as Float32Array
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3
+
+      positions[i3] += velocities[i3] * delta
+      positions[i3 + 1] += velocities[i3 + 1] * delta
+      positions[i3 + 2] += velocities[i3 + 2] * delta
+
+      velocities[i3] *= 0.99
+      velocities[i3 + 1] *= 0.99 - 0.01 * delta
+      velocities[i3 + 2] *= 0.99
+    }
+
+    pointsRef.current.geometry.attributes.position.needsUpdate = true
+  })
+
+  if (!active) return null
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
+      </bufferGeometry>
+      <pointsMaterial size={1} vertexColors transparent opacity={0.8} sizeAttenuation />
+    </points>
+  )
+}
+
+// Explosion effect at collision point
+const ExplosionEffect: React.FC<ExplosionEffectProps> = ({ active, position, size }) => {
+  const lightRef = useRef<THREE.PointLight>(null)
+  const glowRef = useRef<THREE.Mesh>(null)
+  const timeRef = useRef(0)
+
+  useFrame((state, delta) => {
+    if (!active) return
+
+    timeRef.current += delta
+
+    if (lightRef.current) {
+      const intensity = 5 + Math.sin(timeRef.current * 10) * 2
+      lightRef.current.intensity = intensity
+    }
+
+    if (glowRef.current) {
+      const scale = 1 + Math.sin(timeRef.current * 5) * 0.2
+      glowRef.current.scale.set(scale, scale, scale)
+    }
+  })
+
+  if (!active) return null
+
+  return (
+    <group position={position}>
+      <pointLight ref={lightRef} distance={50} intensity={5} color="#FFCC88" />
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[size, 32, 32]} />
+        <meshBasicMaterial color="#FFCC88" transparent opacity={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+// Shockwave effect that expands from collision point
+const ShockwaveEffect: React.FC<ShockwaveEffectProps> = ({ active, position, speed }) => {
+  const waveRef = useRef<THREE.Mesh>(null)
+  const timeRef = useRef(0)
+  const maxSize = 30
+
+  useFrame((state, delta) => {
+    if (!active || !waveRef.current) return
+
+    timeRef.current += delta
+
+    const size = Math.min(timeRef.current * speed, maxSize)
+    waveRef.current.scale.set(size, size, size)
+
+    const opacity = Math.max(0, 1 - size / maxSize)
+    ;(waveRef.current.material as THREE.MeshBasicMaterial).opacity = opacity
+  })
+
+  useEffect(() => {
+    if (active) {
+      timeRef.current = 0
+    }
+  }, [active])
+
+  if (!active) return null
+
+  return (
+    <mesh ref={waveRef} position={position}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshBasicMaterial color="#FFFFFF" transparent opacity={1} side={THREE.BackSide} />
+    </mesh>
+  )
+}
+
+// Result planet after collision (if merger scenario)
+const ResultPlanet: React.FC<ResultPlanetProps> = ({ active, position, radius, texture, rotationSpeed = 0.1 }) => {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const timeRef = useRef(0)
+
+  useFrame((state, delta) => {
+    if (!meshRef.current || !active) return
+
+    timeRef.current += delta
+
+    meshRef.current.rotation.y += delta * rotationSpeed
+
+    const wobble = Math.sin(timeRef.current * 2) * 0.05
+    meshRef.current.rotation.x = wobble
+    meshRef.current.rotation.z = wobble * 0.7
+  })
+
+  if (!active) return null
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <sphereGeometry args={[radius, 64, 64]} />
+      <meshStandardMaterial map={texture} />
+    </mesh>
+  )
+}
+
+// Main simulation scene
+const CollisionScene: React.FC<CollisionSceneProps> = ({
+  planet1Size,
+  planet2Size,
+  impactAngle,
+  impactVelocity,
+  collisionScenario,
+  resetSimulation,
+  isSimulationActive,
+  setIsColliding,
+  setCollisionComplete,
+}) => {
+  const earthTexture = useTexture("/placeholder.svg?height=512&width=512")
+  const marsTexture = useTexture("/placeholder.svg?height=512&width=512")
+  const resultTexture = useTexture("/placeholder.svg?height=512&width=512")
+
+  const [planet1Position, setPlanet1Position] = useState<[number, number, number]>([-15, 0, 0])
+  const [planet2Position, setPlanet2Position] = useState<[number, number, number]>([15, impactAngle * 10, 0])
+  const [collisionPosition, setCollisionPosition] = useState<[number, number, number]>([0, 0, 0])
+  const [showDebris, setShowDebris] = useState(false)
+  const [showExplosion, setShowExplosion] = useState(false)
+  const [showShockwave, setShowShockwave] = useState(false)
+  const [showResultPlanet, setShowResultPlanet] = useState(false)
+  const [deformationFactor, setDeformationFactor] = useState(0)
+
+  const planet1Velocity = useMemo(() => [impactVelocity * 0.5, 0, 0] as [number, number, number], [impactVelocity])
+  const planet2Velocity = useMemo(
+    () => [-impactVelocity * 0.5, -impactAngle * impactVelocity * 0.2, 0] as [number, number, number],
+    [impactVelocity, impactAngle],
+  )
+
+  const isCollisionDetected = useRef(false)
+  const collisionTimeRef = useRef(0)
+
+  useEffect(() => {
+    if (resetSimulation) {
+      setPlanet1Position([-15, 0, 0])
+      setPlanet2Position([15, impactAngle * 10, 0])
+      setShowDebris(false)
+      setShowExplosion(false)
+      setShowShockwave(false)
+      setShowResultPlanet(false)
+      setDeformationFactor(0)
+      isCollisionDetected.current = false
+      collisionTimeRef.current = 0
+      setIsColliding(false)
+      setCollisionComplete(false)
+    }
+  }, [resetSimulation, impactAngle, setIsColliding, setCollisionComplete])
+
+  useFrame((state, delta) => {
+    if (!isSimulationActive || isCollisionDetected.current) return
+
+    const p1 = new THREE.Vector3(...planet1Position)
+    const p2 = new THREE.Vector3(...planet2Position)
+    const distance = p1.distanceTo(p2)
+
+    if (distance < (planet1Size + planet2Size) * 0.8) {
+      isCollisionDetected.current = true
+      setIsColliding(true)
+
+      const collisionPoint = p1.clone().lerp(p2, planet1Size / (planet1Size + planet2Size))
+      setCollisionPosition(collisionPoint.toArray())
+
+      setShowExplosion(true)
+      setShowShockwave(true)
+
+      setTimeout(() => {
+        setShowDebris(true)
+      }, 300)
+
+      if (collisionScenario === "merger") {
+        setTimeout(() => {
+          setShowResultPlanet(true)
+          setCollisionComplete(true)
+        }, 3000)
+      } else if (collisionScenario === "partial") {
+        setDeformationFactor(0.8)
+        setTimeout(() => {
+          setCollisionComplete(true)
+        }, 3000)
+      } else {
+        setTimeout(() => {
+          setCollisionComplete(true)
+        }, 3000)
+      }
+    }
+  })
+
+  return (
+    <>
+      <Stars radius={300} depth={100} count={5000} factor={4} saturation={0} fade />
+      <ambientLight intensity={0.2} />
+      <directionalLight position={[50, 30, 50]} intensity={1} />
+
+      {(!isCollisionDetected.current || collisionScenario !== "destruction") && (
+        <Planet
+          position={planet1Position}
+          radius={planet1Size}
+          texture={earthTexture}
+          atmosphereColor="#4488FF"
+          atmosphereThickness={0.05}
+          velocity={planet1Velocity}
+          onPositionUpdate={setPlanet1Position}
+          isColliding={isCollisionDetected.current}
+          deformationFactor={deformationFactor}
+          planetType="earth"
+        />
+      )}
+
+      {(!isCollisionDetected.current || collisionScenario !== "destruction") && (
+        <Planet
+          position={planet2Position}
+          radius={planet2Size}
+          texture={marsTexture}
+          atmosphereColor="#FF8866"
+          atmosphereThickness={0.02}
+          velocity={planet2Velocity}
+          onPositionUpdate={setPlanet2Position}
+          isColliding={isCollisionDetected.current}
+          deformationFactor={deformationFactor}
+          planetType="mars"
+        />
+      )}
+
+      <DebrisParticles
+        active={showDebris}
+        position={collisionPosition}
+        count={3000}
+        spread={1.5}
+        speed={10}
+        planetType={collisionPosition[0] < 0 ? "earth" : "mars"}
+      />
+
+      <ExplosionEffect
+        active={showExplosion}
+        position={collisionPosition}
+        size={Math.max(planet1Size, planet2Size) * 0.8}
+      />
+
+      <ShockwaveEffect active={showShockwave} position={collisionPosition} speed={20} />
+
+      {showResultPlanet && collisionScenario === "merger" && (
+        <ResultPlanet
+          active={true}
+          position={collisionPosition}
+          radius={Math.sqrt(planet1Size * planet1Size + planet2Size * planet2Size)}
+          texture={resultTexture}
+        />
+      )}
+
+      <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} minDistance={10} maxDistance={100} />
+    </>
+  )
 }
 
 const ControlsPanel: React.FC<ControlsPanelProps> = ({
