@@ -1,5 +1,5 @@
 ![logo](https://github.com/user-attachments/assets/515d044a-070a-4ec7-9c16-92550acb3d0c)
-# Scipo - Science Exploration Through Creative Coding
+# Scipo - Interactive Science Simulations
   Scipo is a collection of interactive simulations that explore various astronomical and physical phenomena through creative coding. More simulations will be added in the future, so  stay tuned!
 
 ## 🌠 Available Simulations
@@ -12,6 +12,8 @@
 | 🌑 **Solar Eclipse Animation** | Simulate the movement of the Moon blocking the Sun. | [Explore simulation](https://scipo.vercel.app/solar-eclipse) |
 | ⭐ **Pulsar Star Effect** | Animate a rapidly spinning neutron star emitting pulses of light. | [Explore simulation](https://scipo.vercel.app/pulsar-star) |
 | 🌌 **Cosmic Background Radiation** | Generate noise patterns resembling the universe's background radiation. | [Explore simulation](https://scipo.vercel.app/cosmic-background) |
+| 🌀 **3D Milky Way Map** | A starfield representation of our galaxy using particle physics. | [Explore simulation](https://scipo.vercel.app/milky-way) |
+| 💥 **Planetary Collision Simulator** | Show what happens when two planets crash into each other. | [Explore simulation](https://scipo.vercel.app/planetary-collision) |
 
 ## More Coming Soon!
 This list is continuously expanding as new simulations are developed. Stay connected for future updates!
