@@ -61,6 +61,14 @@ export default function Home() {
       color: "from-indigo-800 to-blue-600",
       icon: "🌀",
     },
+    {
+      title: "Planetary Collision Simulator",
+      description: "Show what happens when two planets crash into each other.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/planetary-collision",
+      color: "from-red-700 to-orange-600",
+      icon: "💥",
+    },
   ];
 
   return (
