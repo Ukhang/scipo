@@ -7,6 +7,32 @@ import * as THREE from "three";
 import { ChevronDown, ChevronUp, Maximize, Minimize } from "lucide-react";
 
 
+function CentralBlackHole() {
+  return (
+    <group>
+      {/* Accretion disk */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.5, 5, 64]} />
+        <meshBasicMaterial
+          color="#FF8060"
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.7}
+          map={createAccretionDiskTexture()}
+        />
+      </mesh>
+
+      {/* Central glow */}
+      <mesh>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial color="#FFCC88" transparent opacity={0.8} />
+      </mesh>
+
+      {/* Light source */}
+      <pointLight position={[0, 0, 0]} intensity={2} distance={50} decay={2} color="#FFCC88" />
+    </group>
+  )
+}
 
 function createAccretionDiskTexture() {
   const size = 512
