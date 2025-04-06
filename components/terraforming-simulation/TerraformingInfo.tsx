@@ -237,3 +237,5 @@ const TerraformingInfo: React.FC<TerraformingInfoProps> = () => {
     </div>
   );
 };
+
+export default TerraformingInfo;

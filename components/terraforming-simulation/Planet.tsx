@@ -248,3 +248,5 @@ const Planet: React.FC<PlanetProps> = ({
     </group>
   )
 }
+
+export default Planet;

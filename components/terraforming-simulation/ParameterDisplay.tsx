@@ -107,3 +107,5 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
     </div>
   );
 };
+
+export default ParameterDisplay;

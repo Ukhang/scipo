@@ -104,3 +104,5 @@ const VegetationGrowth: React.FC<VegetationGrowthProps> = ({
     </>
   );
 };
+
+export default VegetationGrowth;

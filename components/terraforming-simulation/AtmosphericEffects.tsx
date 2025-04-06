@@ -76,3 +76,5 @@ const AtmosphericEffects: React.FC<AtmosphericEffectsProps> = ({
     </>
   );
 };
+
+export default AtmosphericEffects;

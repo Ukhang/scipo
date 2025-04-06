@@ -86,3 +86,5 @@ const TerraformingStageInfo: React.FC<TerraformingStageInfoProps> = ({
     </div>
   );
 };
+
+export default TerraformingStageInfo;

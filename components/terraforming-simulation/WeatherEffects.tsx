@@ -81,3 +81,5 @@ const WeatherEffects: React.FC<WeatherEffectsProps> = ({ atmosphereDensity, wate
     </points>
   )
 }
+
+export default WeatherEffects;
