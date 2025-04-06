@@ -62,7 +62,7 @@ const TerraformingStageInfo: React.FC<TerraformingStageInfoProps> = ({
   const stageProgress = (currentStage * 6) % 1;
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg">
+    <div className="bg-gray-800 p-4 rounded-lg text-white">
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-semibold">{stage.name}</h3>
         <span className="text-sm bg-blue-600 px-2 py-1 rounded">

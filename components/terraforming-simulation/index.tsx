@@ -17,7 +17,7 @@ const TerraformingSimulator: React.FC = () => {
   const [temperature, setTemperature] = useState<number>(0.2);
   const [vegetation, setVegetation] = useState<number>(0);
   const [oxygenLevel, setOxygenLevel] = useState<number>(0);
-  const [isSimulationActive, setIsSimulationActive] = useState<boolean>(false);
+  const [isSimulationActive, setIsSimulationActive] = useState<boolean>(true);
   const [simulationSpeed, setSimulationSpeed] = useState<number>(1);
   const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
 
