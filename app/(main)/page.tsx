@@ -69,6 +69,14 @@ export default function Home() {
       color: "from-red-700 to-orange-600",
       icon: "💥",
     },
+    {
+      title: "Terraforming Simulation",
+      description: "Watch a barren planet transform into a habitable world over time.",
+      image: "/placeholder.svg?height=200&width=400",
+      href: "/terraforming",
+      color: "from-red-700 to-green-600",
+      icon: "🌍",
+    },
   ];
 
   return (
