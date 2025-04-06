@@ -14,6 +14,7 @@
 | 🌌 **Cosmic Background Radiation** | Generate noise patterns resembling the universe's background radiation. | [Explore simulation](https://scipo.vercel.app/cosmic-background) |
 | 🌀 **3D Milky Way Map** | A starfield representation of our galaxy using particle physics. | [Explore simulation](https://scipo.vercel.app/milky-way) |
 | 💥 **Planetary Collision Simulator** | Show what happens when two planets crash into each other. | [Explore simulation](https://scipo.vercel.app/planetary-collision) |
+| 🌍 **Terraforming Simulation** | Watch a barren planet transform into a habitable world over time.| [Explore simulation](https://scipo.vercel.app/terraforming) |
 
 ## More Coming Soon!
 This list is continuously expanding as new simulations are developed. Stay connected for future updates!

@@ -1,4 +1,6 @@
 import { ChevronUp, ChevronDown, Pause, Play, RotateCcw } from "lucide-react";
+import ParameterDisplay from "./ParameterDisplay";
+import TerraformingStageInfo from "./TerraformingStageInfo";
 
 interface ControlsPanelProps {
   terraformingStage: number;
