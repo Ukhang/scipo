@@ -32,8 +32,8 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
           ></div>
         </div>
         <div className="flex justify-between text-xs">
-          <span>Thin</span>
-          <span>Dense</span>
+          <span className="text-gray-400">Thin</span>
+          <span className="text-white">Dense</span>
         </div>
       </div>
       <div className="bg-gray-800 p-3 rounded-lg">
@@ -45,8 +45,8 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
           ></div>
         </div>
         <div className="flex justify-between text-xs">
-          <span>Dry</span>
-          <span>Oceans</span>
+          <span className="text-gray-400">Dry</span>
+          <span className="text-white">Oceans</span>
         </div>
       </div>
       <div className="bg-gray-800 p-3 rounded-lg">
@@ -64,8 +64,8 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
           ></div>
         </div>
         <div className="flex justify-between text-xs">
-          <span>Cold</span>
-          <span>Hot</span>
+          <span className="text-gray-400">Cold</span>
+          <span className="text-white">Hot</span>
         </div>
       </div>
       <div className="bg-gray-800 p-3 rounded-lg">
@@ -77,8 +77,8 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
           ></div>
         </div>
         <div className="flex justify-between text-xs">
-          <span>Barren</span>
-          <span>Lush</span>
+          <span className="text-gray-400">Barren</span>
+          <span className="text-white">Lush</span>
         </div>
       </div>
       <div className="bg-gray-800 p-3 rounded-lg">
@@ -90,8 +90,8 @@ const ParameterDisplay: React.FC<ParameterDisplayProps> = ({
           ></div>
         </div>
         <div className="flex justify-between text-xs">
-          <span>None</span>
-          <span>Breathable</span>
+          <span className="text-gray-400">None</span>
+          <span className="text-white">Breathable</span>
         </div>
       </div>
       <div className="bg-gray-800 p-3 rounded-lg">
