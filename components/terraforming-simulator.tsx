@@ -6,6 +6,18 @@ import { OrbitControls, Stars, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { ChevronDown, ChevronUp, Pause, Play, RotateCcw } from "lucide-react";
 
+interface WeatherEffectsProps {
+  atmosphereDensity: number;
+  waterLevel: number;
+  temperature: number;
+}
+
+interface VegetationGrowthProps {
+  vegetation: number;
+  waterLevel: number;
+  temperature: number;
+}
+
 interface AtmosphericEffectsProps {
   atmosphereDensity: number;
   temperature: number;
@@ -41,6 +53,199 @@ interface ControlsPanelProps {
 }
 
 interface TerraformingInfoProps {}
+
+const WeatherEffects: React.FC<WeatherEffectsProps> = ({
+  atmosphereDensity,
+  waterLevel,
+  temperature,
+}) => {
+  const rainRef = useRef<THREE.Points>(null);
+  const showRain =
+    atmosphereDensity > 0.5 &&
+    waterLevel > 0.3 &&
+    temperature > 0.3 &&
+    temperature < 0.8;
+
+  const { positions, velocities } = useMemo(() => {
+    const count = 1000;
+    const positions = new Float32Array(count * 3);
+    const velocities = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      const radius = 15;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i3 + 2] = radius * Math.cos(phi);
+
+      velocities[i] = 0.1 + Math.random() * 0.2;
+    }
+
+    return { positions, velocities };
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!rainRef.current || !showRain) return;
+
+    const positions = rainRef.current.geometry.attributes.position
+      .array as Float32Array;
+
+    for (let i = 0; i < positions.length / 3; i++) {
+      const i3 = i * 3;
+      const x = positions[i3];
+      const y = positions[i3 + 1];
+      const z = positions[i3 + 2];
+      const length = Math.sqrt(x * x + y * y + z * z);
+      const normalizedX = x / length;
+      const normalizedY = y / length;
+      const normalizedZ = z / length;
+
+      positions[i3] -= normalizedX * velocities[i] * delta * 10;
+      positions[i3 + 1] -= normalizedY * velocities[i] * delta * 10;
+      positions[i3 + 2] -= normalizedZ * velocities[i] * delta * 10;
+
+      if (
+        Math.sqrt(
+          positions[i3] * positions[i3] +
+            positions[i3 + 1] * positions[i3 + 1] +
+            positions[i3 + 2] * positions[i3 + 2]
+        ) < 10.5
+      ) {
+        const radius = 15;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        positions[i3 + 2] = radius * Math.cos(phi);
+      }
+    }
+
+    rainRef.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  if (!showRain) return null;
+
+  return (
+    <points ref={rainRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.1}
+        color="#8CBED6"
+        transparent
+        opacity={0.6}
+        sizeAttenuation
+      />
+    </points>
+  );
+};
+
+const VegetationGrowth: React.FC<VegetationGrowthProps> = ({
+  vegetation,
+  waterLevel,
+  temperature,
+}) => {
+  const vegetationRef = useRef<THREE.InstancedMesh>(null);
+  const forestsRef = useRef<THREE.InstancedMesh>(null);
+  const count = 1000;
+  const forestCount = 500;
+  const showVegetation =
+    vegetation > 0.3 &&
+    waterLevel > 0.2 &&
+    temperature > 0.3 &&
+    temperature < 0.8;
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useEffect(() => {
+    if (!vegetationRef.current || !showVegetation) return;
+
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const polarExclusion = Math.abs(Math.cos(phi));
+      if (polarExclusion > 0.8 && temperature < 0.5) continue;
+
+      const heightVariation = (Math.random() - 0.5) * 0.1;
+      const radius = 10.2 + waterLevel * 0.3 + heightVariation;
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      dummy.position.set(x, y, z);
+      dummy.lookAt(0, 0, 0);
+      dummy.rotateX(Math.PI / 2);
+      dummy.rotateZ(Math.random() * Math.PI * 2);
+      const scale = 0.05 + vegetation * 0.2 * Math.random();
+      dummy.scale.set(scale, scale * (0.5 + Math.random() * 1.5), scale);
+      dummy.updateMatrix();
+      vegetationRef.current.setMatrixAt(i, dummy.matrix);
+    }
+
+    vegetationRef.current.instanceMatrix.needsUpdate = true;
+
+    if (forestsRef.current && vegetation > 0.6) {
+      for (let i = 0; i < forestCount; i++) {
+        const patchCenterTheta = ((i % 10) * Math.PI) / 5;
+        const patchCenterPhi =
+          ((Math.floor(i / 10) % 10) * Math.PI) / 10 + Math.PI / 4;
+        const theta = patchCenterTheta + (Math.random() - 0.5) * 0.3;
+        const phi = patchCenterPhi + (Math.random() - 0.5) * 0.3;
+        const polarExclusion = Math.abs(Math.cos(phi));
+        if (polarExclusion > 0.7 && temperature < 0.5) continue;
+
+        const radius = 10.25 + waterLevel * 0.3;
+        const x = radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.sin(phi) * Math.sin(theta);
+        const z = radius * Math.cos(phi);
+
+        dummy.position.set(x, y, z);
+        dummy.lookAt(0, 0, 0);
+        dummy.rotateX(Math.PI / 2);
+        dummy.rotateZ(Math.random() * Math.PI * 2);
+        const scale = 0.1 + (vegetation - 0.6) * 0.4 * Math.random();
+        dummy.scale.set(scale, scale * (1 + Math.random()), scale);
+        dummy.updateMatrix();
+        forestsRef.current.setMatrixAt(i, dummy.matrix);
+      }
+
+      forestsRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [vegetation, waterLevel, temperature, dummy, showVegetation]);
+
+  if (!showVegetation) return null;
+
+  return (
+    <>
+      <instancedMesh ref={vegetationRef} args={[null, null, count]}>
+        <coneGeometry args={[1, 3, 5]} />
+        <meshStandardMaterial
+          color={new THREE.Color().setHSL(0.3, 0.8, 0.3 + vegetation * 0.2)}
+          roughness={0.8}
+        />
+      </instancedMesh>
+      {vegetation > 0.6 && (
+        <instancedMesh ref={forestsRef} args={[null, null, forestCount]}>
+          <cylinderGeometry args={[0.2, 0.5, 1, 6]} />
+          <meshStandardMaterial
+            color={new THREE.Color().setHSL(0.35, 0.7, 0.25)}
+            roughness={0.9}
+          />
+        </instancedMesh>
+      )}
+    </>
+  );
+};
 
 const AtmosphericEffects: React.FC<AtmosphericEffectsProps> = ({
   atmosphereDensity,
